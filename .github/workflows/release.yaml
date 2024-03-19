@@ -1,0 +1,32 @@
+name: CD
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag'
+        required: true
+        type: string
+        default: 'v0.0.0'
+
+jobs:
+  build-windows-release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Poetry
+        run: pipx install poetry==1.8.2
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11.8' 
+          cache: 'poetry'
+      - name: Install the project dependencies
+        run: poetry install
+      - name: Package application for Windows
+        run: poetry run pyinstaller --onefile --name=my_app main.py
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "${{ github.event.inputs.tag }}"
+          files: "dist/my_app.exe"

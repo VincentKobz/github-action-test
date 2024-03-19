@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "github-action-test"
+version = "0.1.0"
+description = ""
+authors = ["vincent libeskind <vincent.libeskind@gmail.com>"]
+readme = "README.md"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "3.11.8"
+pyinstaller = "^6.5.0"
+
+[tool.poetry.group.dev.dependencies]
+black = "^24.3.0"
+pytest = "^8.1.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

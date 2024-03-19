@@ -1,0 +1,61 @@
+name: CI/CD
+
+on: push
+
+jobs:
+  qa-unit-tests:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Poetry
+        run: pipx install poetry==1.8.2
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11.8' 
+          cache: 'poetry'
+      - name: Install the project dependencies
+        run: poetry install
+      - name: Black QA
+        run: poetry run black . --check
+      - name: Pytest
+        run: poetry run pytest
+
+  build-windows-dev:
+    runs-on: windows-latest
+    needs: qa-unit-tests
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Poetry
+        run: pipx install poetry==1.8.2
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11.8' 
+          cache: 'poetry'
+      - name: Install the project dependencies
+        run: poetry install
+      - name: Package application for Windows
+        run: poetry run pyinstaller --onefile --name=my_app main.py
+      - name: Upload artifact main
+        if: github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: my_app
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 90
+      - name: Upload artifact dev
+        if: github.ref != 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: my_app
+          path: dist/my_app.exe
+          if-no-files-found: error
+          retention-days: 4
+      - name: Upload release
+        uses: softprops/action-gh-release@v2
+        if: github.ref == 'refs/heads/main' && contains(github.ref, 'refs/tags/')
+        with:
+          files: dist/my_app.exe
+          fail_on_unmatched_files: true
